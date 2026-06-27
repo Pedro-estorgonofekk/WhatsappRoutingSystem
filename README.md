@@ -96,3 +96,108 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Strucuture
+
+```
+src/
+├── main.ts
+├── app.module.ts
+│
+├── config/
+│   ├── env.ts
+│   ├── database.config.ts
+│   └── redis.config.ts
+│
+├── common/
+│   ├── decorators/
+│   ├── filters/
+│   ├── guards/
+│   ├── interceptors/
+│   ├── pipes/
+│   └── utils/
+│
+├── modules/
+│
+│   ├── conversations/
+│   │   ├── conversations.module.ts
+│   │   ├── conversations.controller.ts
+│   │   ├── conversations.service.ts
+│   │   ├── dto/
+│   │   │   ├── create-conversation.dto.ts
+│   │   │   └── assign-attendant.dto.ts
+│   │   ├── entities/
+│   │   │   └── conversation.entity.ts
+│   │   ├── repositories/
+│   │   │   └── conversations.repository.ts
+│   │   ├── enums/
+│   │   │   └── conversation-status.enum.ts
+│   │   └── conversations.policy.ts
+│
+│   ├── attendants/
+│   │   ├── attendants.module.ts
+│   │   ├── attendants.controller.ts
+│   │   ├── attendants.service.ts
+│   │   ├── dto/
+│   │   │   ├── create-attendant.dto.ts
+│   │   │   └── update-attendant.dto.ts
+│   │   ├── entities/
+│   │   │   └── attendant.entity.ts
+│   │   ├── repositories/
+│   │   │   └── attendants.repository.ts
+│   │   └── attendants.selector.ts
+│
+│   ├── messages/
+│   │   ├── messages.module.ts
+│   │   ├── messages.service.ts
+│   │   ├── entities/
+│   │   │   └── message.entity.ts
+│   │   ├── repositories/
+│   │   │   └── messages.repository.ts
+│   │   └── dto/
+│   │       └── create-message.dto.ts
+│
+│   ├── whatsapp-gateway/
+│   │   ├── whatsapp.module.ts
+│   │   ├── whatsapp.controller.ts
+│   │   ├── whatsapp.service.ts
+│   │   │
+│   │   ├── providers/
+│   │   │   ├── whatsapp.provider.interface.ts
+│   │   │   ├── evolution.provider.ts
+│   │   │   └── meta.provider.ts
+│   │   │
+│   │   ├── dto/
+│   │   │   └── incoming-message.dto.ts
+│   │   │
+│   │   ├── handlers/
+│   │   │   ├── incoming-message.handler.ts
+│   │   │   └── routing.handler.ts
+│   │   │
+│   │   └── whatsapp.types.ts
+│
+│   ├── sessions/
+│   │   ├── sessions.module.ts
+│   │   ├── sessions.service.ts
+│   │   └── sessions.repository.ts
+│
+│   └── health/
+│       ├── health.module.ts
+│       └── health.controller.ts
+│
+├── infrastructure/
+│   ├── database/
+│   │   ├── prisma.service.ts (ou typeorm)
+│   │   └── migrations/
+│   │
+│   ├── redis/
+│   │   └── redis.service.ts
+│   │
+│   └── queue/
+│       └── bullmq.config.ts
+│
+└── shared/
+    ├── types/
+    ├── constants/
+    └── errors/
+```
