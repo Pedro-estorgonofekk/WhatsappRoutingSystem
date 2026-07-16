@@ -1,0 +1,10 @@
+POST http://localhost:3000/whatsapp/webhook
+Content-Type: application/json
+
+{
+  "remoteJid": "5511999999999@s.whatsapp.net",
+  "pushName": "Cliente Teste",
+  "message": {
+    "conversation": "Bom dia, quero falar com um humano!"
+  }
+}

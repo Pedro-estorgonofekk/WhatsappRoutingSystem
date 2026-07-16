@@ -14,10 +14,13 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { RoutingModule } from './modules/routing/routing.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { HealthModule } from './modules/health/health.module';
+import { WhatsappController } from './modules/whatsapp/whatsapp.controller';
+import { WhatsappService } from './modules/whatsapp/whatsapp.service';
+
 
 @Module({
   imports: [PrismaModule, RedisModule, QueueModule, TenantsModule, AuthModule, AttendantsModule, ConversationsModule, MessagesModule, SessionsModule, WhatsappModule, RoutingModule, NotificationsModule, HealthModule],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, WhatsappController],
+  providers: [AppService, WhatsappService],
 })
 export class AppModule {}
