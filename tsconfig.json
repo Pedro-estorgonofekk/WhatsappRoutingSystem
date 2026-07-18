@@ -16,7 +16,7 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": false,
-    "types": ["node"]  // <--- ADICIONE ESTA LINHA AQUI
+    "types": ["node"]
   },
   "include": ["src/**/*"]
 }
