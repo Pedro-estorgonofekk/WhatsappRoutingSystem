@@ -13,10 +13,9 @@ export class WhatsappController {
     const token = query["hub.verify_token"];
     const challenge = query["hub.challenge"];
 
-    //N esquece de trocar aqui faz favor
-    const VERIFY_TOKEN = "TokenMeta"; 
+    const verifyToken = process.env.TOKEN; 
 
-    if (mode && token === VERIFY_TOKEN) {
+    if (mode && token === verifyToken) {
       console.log("Deu boa");
       //Retornar o codigo de verificação
       return res.status(HttpStatus.OK).send(challenge);
