@@ -28,11 +28,13 @@ export class WhatsappController {
   }
 
   // Rota pra receber as mensagens
-  @Post("webhook")
-  receiveMessage(@Body() payload: any, @Res() res: Response) {
-    this.whatsappService.handleIncomingMessage(payload);
+  @Post('webhook')
+  async receiveWebhook(@Body() payload: any) {
+
+    console.log(JSON.stringify(payload, null, 2))
+
+    await this.whatsappService.handleWebhookPayload(payload);
     
-    // Responder com 200 OK na hora pra Meta não ficar floodando o servidor
-    return res.status(HttpStatus.OK).send("EVENT_RECEIVED");
+    return { status: 'success' };
   }
 }

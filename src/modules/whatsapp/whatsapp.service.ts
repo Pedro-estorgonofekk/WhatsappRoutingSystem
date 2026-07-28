@@ -1,28 +1,63 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class WhatsappService {
-  handleIncomingMessage(payload: any) {
+  private readonly logger = new Logger(WhatsappService.name);
+
+  constructor(private readonly httpService: HttpService) {}
+
+  // Envia mensagem de volta para a Meta
+  async sendMessage(to: string, text: string) {
+    const phoneNumberId = process.env.PHONE_NUMBER_ID;
+    const token = process.env.META_API_TOKEN;
+
+    const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
+
+    const body = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: to,
+      type: 'text',
+      text: { body: text },
+    };
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
 
     try {
-      //Vê se é do whatszap
-      if (payload.object === "whatsapp_business_account") {
-        const entry = payload.entry?.[0];
-        const changes = entry?.changes?.[0];
-        const value = changes?.value;
-        const message = value?.messages?.[0];
-        const contact = value?.contacts?.[0];
+      const response = await lastValueFrom(
+        this.httpService.post(url, body, { headers }),
+      );
+      this.logger.log(`Mensagem enviada com sucesso para ${to}`);
+      return response.data;
+    } catch (error: any) {
+      this.logger.error(
+        'Erro ao enviar mensagem:',
+        error?.response?.data || error?.message,
+      );
+    }
+  }
 
-        //Vê se foi uma mensagem
-        if (message) {
-          console.log("Mensagem:");
-          console.log(`De: ${contact?.profile?.name} (${message.from})`);
-          console.log(`Tipo: ${message.type}`);
-          console.log(`Texto: ${message.text?.body}\n`);
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao processar webhook da Meta:", error);
+  // Processa a mensagem recebida pelo Webhook
+  async handleWebhookPayload(payload: any) {
+    const entry = payload?.entry?.[0];
+    const change = entry?.changes?.[0]?.value;
+    const message = change?.messages?.[0];
+
+    // Verifica se é uma mensagem de texto recebida
+    if (message && message.type === 'text') {
+      const from = message.from; // Número do remetente
+      const textReceived = message.text?.body; // Texto que a pessoa enviou
+
+      this.logger.log(`Mensagem recebida de [${from}]: "${textReceived}"`);
+
+      // Responde automaticamente pro celular do usuário
+      const responseText = `Olá! Recebi sua mensagem: "${textReceived}" 🤖`;
+      await this.sendMessage(from, responseText);
     }
   }
 }

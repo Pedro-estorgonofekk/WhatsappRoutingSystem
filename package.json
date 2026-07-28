@@ -21,10 +21,13 @@
     "prisma": "prisma"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^5.22.0",
+    "axios": "^1.18.1",
+    "ngrok": "^5.0.0-beta.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
