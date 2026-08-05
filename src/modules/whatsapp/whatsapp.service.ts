@@ -10,7 +10,7 @@ export class WhatsappService {
 
   // Envia mensagem de volta para a Meta
   async sendMessage(to: string, text: string) {
-    const phoneNumberId = process.env.NUMBER_ID;
+    const phoneNumberId = process.env.PHONE_NUMBER_ID;
     const token = process.env.META_API_TOKEN;
 
     const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
@@ -56,7 +56,7 @@ export class WhatsappService {
       this.logger.log(`Mensagem recebida de [${from}]: "${textReceived}"`);
 
       // Responde automaticamente pro celular do usuário
-      const responseText = `Alerta de possivel resenha, mensagem recebida: "${textReceived}"`;
+      const responseText = `Olá! Recebi sua mensagem: "${textReceived}" 🤖`;
       await this.sendMessage(from, responseText);
     }
   }

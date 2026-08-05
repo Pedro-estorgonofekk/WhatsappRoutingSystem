@@ -31,6 +31,8 @@ export class WhatsappController {
   @Post('webhook')
   async receiveWebhook(@Body() payload: any) {
 
+    console.log(JSON.stringify(payload, null, 2))
+
     await this.whatsappService.handleWebhookPayload(payload);
     
     return { status: 'success' };
