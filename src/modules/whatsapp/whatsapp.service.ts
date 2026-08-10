@@ -55,9 +55,20 @@ export class WhatsappService {
 
       this.logger.log(`Mensagem recebida de [${from}]: "${textReceived}"`);
 
-      // Responde automaticamente pro celular do usuário
-      const responseText = `Olá! Recebemos sua mensagem: "${textReceived}". Obrigado por entrar em contato!\n\nDigite 1 para falar com um atendente,\nEquipe de Suporte.`;
+      const responseText = await this.generateResponse(textReceived);
+
       await this.sendMessage(from, responseText);
     }
+  }
+  
+  async generateResponse(textReceived: string){
+    console.log("Gerando resposta para o texto recebido:", textReceived);
+      if (textReceived.includes("1")) {
+        return `Arroz`;
+      }else if (textReceived.includes("2")) {
+        return `Frango`;
+      }else{
+        return `Olá, recebemos a mensagem: ${textReceived}\n\n 1 - Arroz\n 2 - Frango`
+      }  
   }
 }
