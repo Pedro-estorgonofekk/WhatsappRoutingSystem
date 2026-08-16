@@ -1,74 +1,76 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
+import { RoutingService } from '../routing/routing.service';
 
 @Injectable()
 export class WhatsappService {
   private readonly logger = new Logger(WhatsappService.name);
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly routingService: RoutingService,
+  ) {}
 
-  // Envia mensagem de volta para a Meta
   async sendMessage(to: string, text: string) {
-    const phoneNumberId = process.env.NUMBER_ID;
+    const phoneNumberId =
+      process.env.META_PHONE_NUMBER_ID ?? process.env.NUMBER_ID;
     const token = process.env.META_API_TOKEN;
-
     const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
-
-    const body = {
-      messaging_product: 'whatsapp',
-      recipient_type: 'individual',
-      to: to,
-      type: 'text',
-      text: { body: text },
-    };
-
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    };
 
     try {
       const response = await lastValueFrom(
-        this.httpService.post(url, body, { headers }),
+        this.httpService.post(
+          url,
+          {
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to,
+            type: 'text',
+            text: { body: text },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
       );
-      this.logger.log(`Mensagem enviada com sucesso para ${to}`);
+      this.logger.log(`Message sent to ${to}`);
       return response.data;
     } catch (error: any) {
       this.logger.error(
-        'Erro ao enviar mensagem:',
+        'Failed to send WhatsApp message:',
         error?.response?.data || error?.message,
       );
     }
   }
 
-  // Processa a mensagem recebida pelo Webhook
   async handleWebhookPayload(payload: any) {
-    const entry = payload?.entry?.[0];
-    const change = entry?.changes?.[0]?.value;
-    const message = change?.messages?.[0];
+    const message = payload?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    if (!message || message.type !== 'text') return;
 
-    // Verifica se é uma mensagem de texto recebida
-    if (message && message.type === 'text') {
-      const from = message.from; // Número do remetente
-      const textReceived = message.text?.body; // Texto que a pessoa enviou
-
-      this.logger.log(`Mensagem recebida de [${from}]: "${textReceived}"`);
-
-      const responseText = await this.generateResponse(textReceived);
-
-      await this.sendMessage(from, responseText);
+    const tenantId = process.env.DEFAULT_TENANT_ID;
+    if (!tenantId) {
+      this.logger.error('DEFAULT_TENANT_ID is required to route inbound messages.');
+      return;
     }
-  }
-  
-  async generateResponse(textReceived: string){
-    console.log("Gerando resposta para o texto recebido:", textReceived);
-      if (textReceived.includes("1")) {
-        return `Arroz`;
-      }else if (textReceived.includes("2")) {
-        return `Frango`;
-      }else{
-        return `Olá, recebemos a mensagem: ${textReceived}\n\n 1 - Arroz\n 2 - Frango`
-      }  
+
+    const customerPhone = message.from;
+    const body = message.text?.body;
+    this.logger.log(`Inbound message from ${customerPhone}`);
+
+    const result = await this.routingService.routeInboundMessage({
+      tenantId,
+      customerPhone,
+      body,
+      externalId: message.id,
+    });
+
+    if (result.reply) {
+      await this.sendMessage(customerPhone, result.reply);
+      await this.routingService.recordAutomaticReply(result.conversation.id, result.reply);
+    }
   }
 }

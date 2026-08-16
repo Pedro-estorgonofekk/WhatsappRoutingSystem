@@ -1,0 +1,28 @@
+###
+POST http://localhost:3000/tenants
+content-type: application/json
+
+{
+    "name": "Acme Corp"
+}
+
+###
+POST http://localhost:3000/departments
+Content-Type: application/json
+
+{
+    "name": "IT Department",
+    "tenantId": "{{$dotenv DEFAULT_TENANT_ID}}",
+    "sortOrder": 1
+}
+
+###
+POST http://localhost:3000/attendants
+content-type: application/json
+
+{
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "tenantId": "{{$dotenv DEFAULT_TENANT_ID}}",
+    "departmentId": "{{$dotenv DEFAULT_DEPARTMENT_ID}}"
+}

@@ -14,11 +14,12 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { RoutingModule } from './modules/routing/routing.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { HealthModule } from './modules/health/health.module';
+import { DepartmentsModule } from './modules/departments/departments.module';
 import { HttpModule } from '@nestjs/axios';
 
 
 @Module({
-  imports: [PrismaModule, RedisModule, QueueModule, TenantsModule, AuthModule, AttendantsModule, ConversationsModule, MessagesModule, SessionsModule, WhatsappModule, RoutingModule, NotificationsModule, HealthModule, HttpModule],
+  imports: [PrismaModule, RedisModule, QueueModule, TenantsModule, AuthModule, AttendantsModule, ConversationsModule, MessagesModule, SessionsModule, WhatsappModule, RoutingModule, NotificationsModule, HealthModule, DepartmentsModule, HttpModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -14,6 +14,8 @@ model Tenant {
   updatedAt DateTime @updatedAt
 
   attendants Attendant[]
+  conversations Conversation[]
+  departments Department[]
 
   @@map("tenants")
 }
@@ -27,6 +29,85 @@ model Attendant {
   updatedAt DateTime @updatedAt
 
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  status    AttendantStatus @default(ONLINE)
+  conversations Conversation[]
+  departmentId String?
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
   @@map("attendants")
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String
+  sortOrder Int      @default(0)
+  tenantId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  attendants  Attendant[]
+  conversations Conversation[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, sortOrder])
+  @@map("departments")
+}
+
+model Conversation {
+  id            String             @id @default(uuid())
+  tenantId      String
+  customerPhone String
+  status        ConversationStatus @default(OPEN)
+  attendantId   String?
+  departmentId  String?
+  stage         ConversationStage @default(MENU)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  attendant     Attendant? @relation(fields: [attendantId], references: [id], onDelete: SetNull)
+  department    Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  messages      Message[]
+
+  @@unique([tenantId, customerPhone])
+  @@index([tenantId, status])
+  @@index([attendantId, status])
+  @@map("conversations")
+}
+
+model Message {
+  id             String           @id @default(uuid())
+  conversationId String
+  direction      MessageDirection
+  body           String
+  externalId     String?          @unique
+  createdAt      DateTime         @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+enum AttendantStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+}
+
+enum ConversationStage {
+  MENU
+  SELECTING_ATTENDANT
+  WAITING
+  ASSIGNED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
 }
