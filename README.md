@@ -26,6 +26,7 @@ Useful read endpoints:
 - `GET /departments?tenantId=:tenantId` — the department menu configuration
 - `GET /attendants/:id/conversations` — one attendant's open inbox
 - `PATCH /conversations/:id/close` — closes a conversation so the next customer message is routed again
+- `POST /conversations/:id/messages` — sends an assigned attendant's reply to the customer; body: `{ "attendantId", "body" }`
 
 ## Local Meta webhook
 

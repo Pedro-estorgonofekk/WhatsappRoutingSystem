@@ -26,3 +26,22 @@ content-type: application/json
     "tenantId": "{{$dotenv DEFAULT_TENANT_ID}}",
     "departmentId": "{{$dotenv DEFAULT_DEPARTMENT_ID}}"
 }
+
+
+###
+GET http://localhost:3000/attendants
+
+###
+GET http://localhost:3000/conversations
+
+###
+POST http://localhost:3000/conversations/{{$dotenv CONVERSATION_ID}}/messages
+Content-Type: application/json
+
+{
+    "attendantId": "{{$dotenv ATTENDANT_ID}}",
+    "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+}
+
+###
+PATCH http://localhost:3000/conversations/{{$dotenv CONVERSATION_ID}}/close

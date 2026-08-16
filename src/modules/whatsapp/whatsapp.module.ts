@@ -7,6 +7,7 @@ import { RoutingModule } from '../routing/routing.module';
 @Module({
   imports: [HttpModule, RoutingModule],
   providers: [WhatsappService],
-  controllers: [WhatsappController]
+  controllers: [WhatsappController],
+  exports: [WhatsappService],
 })
 export class WhatsappModule {}
