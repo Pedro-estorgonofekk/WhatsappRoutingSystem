@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendant Inbox</title>
+    <style>
+      :root { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #1b2733; background: #edf2f5; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; }
+      button, select, textarea { font: inherit; }
+      button { cursor: pointer; border: 0; }
+      .setup { max-width: 480px; margin: 10vh auto; padding: 32px; background: white; border-radius: 18px; box-shadow: 0 18px 50px #16314b22; }
+      h1 { margin: 0 0 8px; font-size: 25px; } .subtle { color: #64748b; margin: 0 0 28px; line-height: 1.5; }
+      label { display: block; font-size: 13px; font-weight: 700; margin: 18px 0 7px; color: #475569; }
+      select, textarea { width: 100%; border: 1px solid #d5dde3; border-radius: 9px; padding: 11px 12px; background: white; }
+      .primary { width: 100%; background: #0f766e; color: white; padding: 12px; border-radius: 9px; font-weight: 700; margin-top: 24px; }
+      .primary:hover { background: #0c625b; } .error { color: #b42318; font-size: 13px; min-height: 20px; margin-top: 12px; }
+      #app { display: none; height: 100vh; grid-template-columns: 345px 1fr; }
+      .sidebar { background: white; border-right: 1px solid #dbe4e8; display: flex; flex-direction: column; min-width: 0; }
+      .brand { background: #0f766e; color: white; padding: 22px 20px; } .brand h1 { font-size: 20px; } .brand p { margin: 5px 0 0; opacity: .78; font-size: 13px; }
+      .user { display: flex; padding: 16px; gap: 11px; align-items: center; border-bottom: 1px solid #e7edf0; }
+      .avatar { background: #d4f4ed; color: #0f766e; border-radius: 50%; width: 38px; height: 38px; display: grid; place-items: center; font-weight: 800; }
+      .user-name { font-weight: 750; font-size: 14px; } .status-row { font-size: 12px; color: #64748b; margin-top: 3px; }
+      .status { margin-left: auto; border-radius: 999px; padding: 6px 9px; font-size: 11px; font-weight: 750; }
+      .online { background: #d9f7e8; color: #137333; } .offline { background: #f1f3f5; color: #59636e; }
+      .inbox-heading { display: flex; justify-content: space-between; padding: 16px; font-size: 13px; font-weight: 800; border-bottom: 1px solid #e7edf0; }
+      .count { color: #0f766e; } .conversation-list { overflow: auto; flex: 1; }
+      .conversation { width: 100%; text-align: left; padding: 14px 16px; background: white; border-bottom: 1px solid #eef2f4; }
+      .conversation:hover, .conversation.selected { background: #e9f7f4; } .conversation-top { display: flex; justify-content: space-between; gap: 8px; font-weight: 700; font-size: 14px; }
+      .preview { color: #64748b; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 5px; }
+      .empty-list { padding: 30px 20px; color: #64748b; font-size: 14px; text-align: center; }
+      .chat { display: flex; flex-direction: column; min-width: 0; background: #f6f8fa; }
+      .chat-header { padding: 18px 24px; background: white; border-bottom: 1px solid #dbe4e8; display: flex; justify-content: space-between; align-items: center; }
+      .chat-title { font-weight: 800; } .chat-meta { color: #64748b; font-size: 13px; margin-top: 3px; }
+      .close { background: #fff1f0; color: #b42318; border-radius: 8px; padding: 9px 12px; font-weight: 700; font-size: 13px; }
+      .messages { flex: 1; padding: 24px max(24px, 8%); overflow: auto; display: flex; flex-direction: column; gap: 9px; }
+      .message { max-width: min(520px, 78%); padding: 10px 13px 6px; border-radius: 12px; white-space: pre-wrap; line-height: 1.4; box-shadow: 0 1px 1px #1d2b3620; }
+      .inbound { background: white; align-self: flex-start; border-top-left-radius: 3px; } .outbound { background: #d7f7ee; align-self: flex-end; border-top-right-radius: 3px; }
+      .message time { display: block; text-align: right; color: #718096; font-size: 10px; margin-top: 4px; }
+      .composer { padding: 14px 24px; background: white; display: flex; gap: 10px; border-top: 1px solid #dbe4e8; }
+      textarea { resize: none; min-height: 46px; max-height: 120px; } .send { background: #0f766e; color: white; padding: 0 19px; border-radius: 9px; font-weight: 750; }
+      .chat-empty { margin: auto; text-align: center; color: #64748b; } .chat-empty strong { color: #334155; display: block; margin-bottom: 7px; }
+      .hidden { display: none !important; }
+      @media (max-width: 700px) { #app { grid-template-columns: 1fr; } .sidebar { height: 42vh; } .chat { height: 58vh; } .messages { padding: 16px; } .chat-header, .composer { padding: 12px 16px; } }
+    </style>
+  </head>
+  <body>
+    <section id="setup" class="setup">
+      <h1>Attendant dashboard</h1>
+      <p class="subtle">Choose your workspace and attendant profile to open the inbox.</p>
+      <label for="tenant">Workspace</label><select id="tenant"><option value="">Loading workspaces…</option></select>
+      <label for="attendant">You are</label><select id="attendant" disabled><option value="">Choose a workspace first</option></select>
+      <button id="open-dashboard" class="primary">Open inbox</button>
+      <div id="setup-error" class="error"></div>
+    </section>
+    <main id="app">
+      <aside class="sidebar">
+        <div class="brand"><h1>Inbox</h1><p>WhatsApp customer support</p></div>
+        <div class="user"><div id="avatar" class="avatar">?</div><div><div id="user-name" class="user-name"></div><div class="status-row">Availability</div></div><button id="status" class="status"></button></div>
+        <div class="inbox-heading">OPEN CONVERSATIONS <span id="count" class="count">0</span></div>
+        <div id="conversation-list" class="conversation-list"></div>
+      </aside>
+      <section class="chat">
+        <header id="chat-header" class="chat-header hidden"><div><div id="chat-title" class="chat-title"></div><div id="chat-meta" class="chat-meta"></div></div><button id="close" class="close">Close conversation</button></header>
+        <div id="messages" class="messages"><div class="chat-empty"><strong>Your inbox is ready</strong>Select a conversation to reply to a customer.</div></div>
+        <form id="composer" class="composer hidden"><textarea id="reply" placeholder="Write a reply…" required></textarea><button class="send" type="submit">Send</button></form>
+      </section>
+    </main>
+    <script>
+      const state = { tenant: null, attendant: null, conversations: [], selectedId: null, timer: null };
+      const $ = (selector) => document.querySelector(selector);
+      const api = async (path, options = {}) => {
+        const response = await fetch(path, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
+        if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.message || 'Request failed'); }
+        return response.status === 204 ? null : response.json();
+      };
+      const initials = (name) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+      const formatTime = (value) => new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+      const clear = (element) => { while (element.firstChild) element.removeChild(element.firstChild); };
+      const option = (value, label) => { const node = document.createElement('option'); node.value = value; node.textContent = label; return node; };
+
+      async function loadTenants() {
+        const tenants = await api('/tenants'); const select = $('#tenant'); clear(select); select.append(option('', 'Choose a workspace'));
+        tenants.forEach((tenant) => select.append(option(tenant.id, tenant.name)));
+        const saved = localStorage.getItem('dashboardTenant'); if (saved && tenants.some((tenant) => tenant.id === saved)) { select.value = saved; await loadAttendants(); }
+      }
+      async function loadAttendants() {
+        const tenantId = $('#tenant').value; const select = $('#attendant'); clear(select);
+        if (!tenantId) { select.disabled = true; select.append(option('', 'Choose a workspace first')); return; }
+        const attendants = await api('/attendants?tenantId=' + encodeURIComponent(tenantId)); select.disabled = false; select.append(option('', 'Choose your profile'));
+        attendants.forEach((attendant) => select.append(option(attendant.id, attendant.name + (attendant.status === 'OFFLINE' ? ' (offline)' : ''))));
+        const saved = localStorage.getItem('dashboardAttendant'); if (saved && attendants.some((attendant) => attendant.id === saved)) select.value = saved;
+      }
+      function renderInbox() {
+        const list = $('#conversation-list'); clear(list); $('#count').textContent = state.conversations.length;
+        if (!state.conversations.length) { const empty = document.createElement('div'); empty.className = 'empty-list'; empty.textContent = 'No open conversations yet.'; list.append(empty); renderChat(null); return; }
+        state.conversations.forEach((conversation) => {
+          const last = conversation.messages[conversation.messages.length - 1]; const row = document.createElement('button'); row.className = 'conversation' + (conversation.id === state.selectedId ? ' selected' : '');
+          const top = document.createElement('div'); top.className = 'conversation-top'; const phone = document.createElement('span'); phone.textContent = conversation.customerPhone; const time = document.createElement('span'); time.style.color = '#64748b'; time.style.fontWeight = '500'; time.style.fontSize = '11px'; time.textContent = last ? formatTime(last.createdAt) : ''; top.append(phone, time);
+          const preview = document.createElement('div'); preview.className = 'preview'; preview.textContent = last ? last.body : 'No messages'; row.append(top, preview); row.onclick = () => { state.selectedId = conversation.id; renderInbox(); }; list.append(row);
+        });
+        renderChat(state.conversations.find((conversation) => conversation.id === state.selectedId) || state.conversations[0]);
+      }
+      function renderChat(conversation) {
+        const header = $('#chat-header'), composer = $('#composer'), messages = $('#messages'); clear(messages);
+        if (!conversation) { header.classList.add('hidden'); composer.classList.add('hidden'); const empty = document.createElement('div'); empty.className = 'chat-empty'; empty.innerHTML = '<strong>Your inbox is ready</strong>Select a conversation to reply to a customer.'; messages.append(empty); return; }
+        state.selectedId = conversation.id; header.classList.remove('hidden'); composer.classList.remove('hidden'); $('#chat-title').textContent = conversation.customerPhone; $('#chat-meta').textContent = 'Assigned to you';
+        conversation.messages.forEach((entry) => { const message = document.createElement('div'); message.className = 'message ' + (entry.direction === 'INBOUND' ? 'inbound' : 'outbound'); const body = document.createElement('div'); body.textContent = entry.body; const time = document.createElement('time'); time.textContent = formatTime(entry.createdAt); message.append(body, time); messages.append(message); });
+        messages.scrollTop = messages.scrollHeight;
+      }
+      async function refreshInbox() {
+        if (!state.attendant) return; state.conversations = await api('/attendants/' + state.attendant.id + '/conversations'); if (!state.selectedId && state.conversations[0]) state.selectedId = state.conversations[0].id; renderInbox();
+      }
+      async function openDashboard() {
+        const tenantId = $('#tenant').value, attendantId = $('#attendant').value; const error = $('#setup-error'); error.textContent = '';
+        if (!tenantId || !attendantId) { error.textContent = 'Choose both a workspace and your attendant profile.'; return; }
+        const attendants = await api('/attendants?tenantId=' + encodeURIComponent(tenantId)); const attendant = attendants.find((item) => item.id === attendantId); if (!attendant) { error.textContent = 'Attendant not found.'; return; }
+        state.tenant = tenantId; state.attendant = attendant; localStorage.setItem('dashboardTenant', tenantId); localStorage.setItem('dashboardAttendant', attendantId);
+        $('#setup').style.display = 'none'; $('#app').style.display = 'grid'; $('#user-name').textContent = attendant.name; $('#avatar').textContent = initials(attendant.name); renderStatus(); await refreshInbox(); clearInterval(state.timer); state.timer = setInterval(refreshInbox, 5000);
+      }
+      function renderStatus() { const button = $('#status'); const online = state.attendant.status === 'ONLINE'; button.textContent = online ? '● Online' : '○ Offline'; button.className = 'status ' + (online ? 'online' : 'offline'); }
+      $('#tenant').addEventListener('change', loadAttendants); $('#open-dashboard').addEventListener('click', () => openDashboard().catch((error) => $('#setup-error').textContent = error.message));
+      $('#status').addEventListener('click', async () => { const next = state.attendant.status === 'ONLINE' ? 'OFFLINE' : 'ONLINE'; try { state.attendant = await api('/attendants/' + state.attendant.id + '/status', { method: 'PATCH', body: JSON.stringify({ status: next }) }); renderStatus(); } catch (error) { alert(error.message); } });
+      $('#composer').addEventListener('submit', async (event) => { event.preventDefault(); const input = $('#reply'); const body = input.value.trim(); if (!body || !state.selectedId) return; const send = $('.send'); send.disabled = true; try { await api('/conversations/' + state.selectedId + '/messages', { method: 'POST', body: JSON.stringify({ attendantId: state.attendant.id, body }) }); input.value = ''; await refreshInbox(); } catch (error) { alert(error.message); } finally { send.disabled = false; input.focus(); } });
+      $('#close').addEventListener('click', async () => { if (!state.selectedId || !confirm('Close this conversation?')) return; try { await api('/conversations/' + state.selectedId + '/close', { method: 'PATCH' }); state.selectedId = null; await refreshInbox(); } catch (error) { alert(error.message); } });
+      loadTenants().catch((error) => $('#setup-error').textContent = error.message);
+    </script>
+  </body>
+</html>
